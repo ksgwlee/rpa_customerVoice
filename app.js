@@ -84,8 +84,8 @@ const pagination = document.querySelector("#pagination");
 const downloadExcelButton = document.querySelector("#downloadExcelButton");
 const filterForm = document.querySelector("#filterForm");
 const categoryFilter = document.querySelector("#categoryFilter");
-const titleFilter = document.querySelector("#titleFilter");
-const customerFilter = document.querySelector("#customerFilter");
+const searchTypeFilter = document.querySelector("#searchTypeFilter");
+const keywordFilter = document.querySelector("#keywordFilter");
 const startDateFilter = document.querySelector("#startDateFilter");
 const endDateFilter = document.querySelector("#endDateFilter");
 const statusFilter = document.querySelector("#statusFilter");
@@ -93,8 +93,8 @@ const resultCount = document.querySelector("#resultCount");
 
 let activeFilters = {
   category: "",
-  title: "",
-  customer: "",
+  searchType: "title",
+  keyword: "",
   startDate: "",
   endDate: "",
   status: ""
@@ -111,13 +111,13 @@ function normalize(value) {
 function getFilteredPosts() {
   return posts.filter((post) => {
     const matchesCategory = !activeFilters.category || post.category === activeFilters.category;
-    const matchesTitle = !activeFilters.title || normalize(post.title).includes(activeFilters.title);
-    const matchesCustomer = !activeFilters.customer || normalize(post.customer).includes(activeFilters.customer);
+    const searchTarget = activeFilters.searchType === "customer" ? post.customer : post.title;
+    const matchesKeyword = !activeFilters.keyword || normalize(searchTarget).includes(activeFilters.keyword);
     const matchesStartDate = !activeFilters.startDate || post.date >= activeFilters.startDate;
     const matchesEndDate = !activeFilters.endDate || post.date <= activeFilters.endDate;
     const matchesStatus = !activeFilters.status || activeFilters.status === "답변대기";
 
-    return matchesCategory && matchesTitle && matchesCustomer && matchesStartDate && matchesEndDate && matchesStatus;
+    return matchesCategory && matchesKeyword && matchesStartDate && matchesEndDate && matchesStatus;
   });
 }
 
@@ -516,8 +516,8 @@ filterForm.addEventListener("submit", (event) => {
   event.preventDefault();
   activeFilters = {
     category: categoryFilter.value,
-    title: normalize(titleFilter.value),
-    customer: normalize(customerFilter.value),
+    searchType: searchTypeFilter.value,
+    keyword: normalize(keywordFilter.value),
     startDate: startDateFilter.value,
     endDate: endDateFilter.value,
     status: statusFilter.value

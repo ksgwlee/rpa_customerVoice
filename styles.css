@@ -172,7 +172,7 @@ h2 {
 
 .filter-panel {
   display: grid;
-  grid-template-columns: 150px minmax(150px, 1fr) minmax(130px, 0.8fr) 140px 140px 140px 86px;
+  grid-template-columns: 150px 130px minmax(180px, 1fr) 140px 140px 140px 86px;
   gap: 10px;
   align-items: end;
   margin-bottom: 18px;
