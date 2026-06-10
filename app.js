@@ -81,6 +81,7 @@ const postList = document.querySelector("#postList");
 const postDetail = document.querySelector("#postDetail");
 const backButton = document.querySelector("#backButton");
 const pagination = document.querySelector("#pagination");
+const downloadExcelButton = document.querySelector("#downloadExcelButton");
 
 function formatDate(value) {
   return value.replaceAll("-", ".");
@@ -174,6 +175,66 @@ function renderDetail(post) {
   detailView.hidden = false;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function downloadExcel() {
+  const sortedPosts = [...posts].sort((a, b) => b.no - a.no);
+  const rows = sortedPosts.map((post) => `
+    <tr>
+      <td>${post.no}</td>
+      <td>${escapeHtml(post.category)}</td>
+      <td>${escapeHtml(post.title)}</td>
+      <td>${escapeHtml(post.customer)}</td>
+      <td>${formatDate(post.date)}</td>
+      <td>답변대기</td>
+      <td>${escapeHtml(post.content)}</td>
+    </tr>
+  `).join("");
+
+  const workbook = `
+    <html>
+      <head>
+        <meta charset="utf-8">
+      </head>
+      <body>
+        <table border="1">
+          <thead>
+            <tr>
+              <th>번호</th>
+              <th>유형</th>
+              <th>제목</th>
+              <th>고객명</th>
+              <th>문의일</th>
+              <th>답변상태</th>
+              <th>본문</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob(["\ufeff", workbook], {
+    type: "application/vnd.ms-excel;charset=utf-8"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "customer-inquiries.xls";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 function getPostByNo(inquiryNo) {
   return posts.find((item) => String(item.no) === String(inquiryNo));
 }
@@ -245,6 +306,7 @@ pagination.addEventListener("click", (event) => {
   showList();
 });
 
+downloadExcelButton.addEventListener("click", downloadExcel);
 backButton.addEventListener("click", () => showList(true));
 window.addEventListener("popstate", openPostFromUrl);
 

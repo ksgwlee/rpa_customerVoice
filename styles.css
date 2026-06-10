@@ -144,8 +144,30 @@ h2 {
 }
 
 .section-head span {
+  display: inline-block;
+  margin-top: 6px;
   color: #111827;
   font-size: 15px;
+}
+
+.download-button {
+  min-height: 36px;
+  border: 1px solid #9fb2ca;
+  border-radius: 4px;
+  background: #ffffff;
+  color: var(--navy);
+  font: inherit;
+  font-weight: 800;
+  padding: 0 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.download-button:hover,
+.download-button:focus {
+  border-color: var(--blue);
+  background: #eef7ff;
+  color: var(--blue);
 }
 
 .board {
