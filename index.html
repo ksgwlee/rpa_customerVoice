@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>고객문의 | Smart Support Center</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-topbar">
+        <a class="brand" href="index.html" aria-label="Smart Support Center 홈">
+          <span class="brand-mark">S</span>
+          <span>Smart Support Center</span>
+        </a>
+        <nav class="site-nav" aria-label="주요 메뉴">
+          <a href="#">서비스 소개</a>
+          <a href="#">이용안내</a>
+          <a class="active" href="index.html">고객문의</a>
+          <a href="#">공지사항</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="page-hero">
+      <div class="hero-inner">
+        <p class="breadcrumb">홈 &gt; 고객센터 &gt; 고객문의</p>
+        <h1>고객문의</h1>
+        <p>접수된 고객 문의를 확인하고 상세 본문을 조회할 수 있습니다.</p>
+      </div>
+    </section>
+
+    <main class="layout">
+      <section class="content-panel">
+        <div class="section-head">
+          <h2>고객문의 목록</h2>
+          <span>총 50건</span>
+        </div>
+
+        <section id="listView" class="board-view" aria-label="고객문의 목록">
+          <div class="board">
+            <div class="board-head">
+              <span>번호</span>
+              <span>유형</span>
+              <span>제목</span>
+              <span>고객명</span>
+              <span>문의일</span>
+              <span>답변상태</span>
+            </div>
+            <div id="postList" class="post-list"></div>
+          </div>
+          <nav id="pagination" class="pagination" aria-label="고객문의 페이지"></nav>
+        </section>
+
+        <section id="detailView" class="detail-view" aria-label="고객문의 상세" hidden>
+          <button id="backButton" class="back-button" type="button">목록</button>
+          <article id="postDetail" class="post-detail"></article>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>Smart Support Center</div>
+      <div>고객 문의 자동 분류 및 후처리 테스트 페이지</div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
