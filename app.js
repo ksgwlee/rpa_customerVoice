@@ -175,60 +175,230 @@ function renderDetail(post) {
   detailView.hidden = false;
 }
 
-function escapeHtml(value) {
+function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function makeCrcTable() {
+  const table = [];
+
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+
+  return table;
+}
+
+const crcTable = makeCrcTable();
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    crc = crcTable[(crc ^ bytes[index]) & 0xff] ^ (crc >>> 8);
+  }
+
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function uint16(value) {
+  return [value & 0xff, (value >>> 8) & 0xff];
+}
+
+function uint32(value) {
+  return [
+    value & 0xff,
+    (value >>> 8) & 0xff,
+    (value >>> 16) & 0xff,
+    (value >>> 24) & 0xff
+  ];
+}
+
+function createZip(files) {
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const centralDirectory = [];
+  let offset = 0;
+
+  files.forEach((file) => {
+    const nameBytes = encoder.encode(file.name);
+    const contentBytes = encoder.encode(file.content);
+    const checksum = crc32(contentBytes);
+    const localHeader = new Uint8Array([
+      ...uint32(0x04034b50),
+      ...uint16(20),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint32(checksum),
+      ...uint32(contentBytes.length),
+      ...uint32(contentBytes.length),
+      ...uint16(nameBytes.length),
+      ...uint16(0)
+    ]);
+    const localRecord = new Uint8Array(localHeader.length + nameBytes.length + contentBytes.length);
+
+    localRecord.set(localHeader, 0);
+    localRecord.set(nameBytes, localHeader.length);
+    localRecord.set(contentBytes, localHeader.length + nameBytes.length);
+    chunks.push(localRecord);
+
+    const centralHeader = new Uint8Array([
+      ...uint32(0x02014b50),
+      ...uint16(20),
+      ...uint16(20),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint32(checksum),
+      ...uint32(contentBytes.length),
+      ...uint32(contentBytes.length),
+      ...uint16(nameBytes.length),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint16(0),
+      ...uint32(0),
+      ...uint32(offset)
+    ]);
+    const centralRecord = new Uint8Array(centralHeader.length + nameBytes.length);
+
+    centralRecord.set(centralHeader, 0);
+    centralRecord.set(nameBytes, centralHeader.length);
+    centralDirectory.push(centralRecord);
+    offset += localRecord.length;
+  });
+
+  const centralOffset = offset;
+  const centralSize = centralDirectory.reduce((sum, chunk) => sum + chunk.length, 0);
+  const endRecord = new Uint8Array([
+    ...uint32(0x06054b50),
+    ...uint16(0),
+    ...uint16(0),
+    ...uint16(files.length),
+    ...uint16(files.length),
+    ...uint32(centralSize),
+    ...uint32(centralOffset),
+    ...uint16(0)
+  ]);
+
+  return new Blob([...chunks, ...centralDirectory, endRecord], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  });
+}
+
+function getColumnName(index) {
+  let name = "";
+  let current = index;
+
+  while (current > 0) {
+    const remainder = (current - 1) % 26;
+    name = String.fromCharCode(65 + remainder) + name;
+    current = Math.floor((current - 1) / 26);
+  }
+
+  return name;
+}
+
+function makeCell(value, rowIndex, columnIndex) {
+  const cellRef = `${getColumnName(columnIndex)}${rowIndex}`;
+  const text = escapeXml(value);
+
+  return `<c r="${cellRef}" t="inlineStr"><is><t>${text}</t></is></c>`;
+}
+
+function createXlsxBlob(rows) {
+  const sheetRows = rows.map((row, rowIndex) => {
+    const cells = row.map((value, columnIndex) => makeCell(value, rowIndex + 1, columnIndex + 1)).join("");
+    return `<row r="${rowIndex + 1}">${cells}</row>`;
+  }).join("");
+
+  const worksheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <cols>
+    <col min="1" max="1" width="8" customWidth="1"/>
+    <col min="2" max="2" width="14" customWidth="1"/>
+    <col min="3" max="3" width="42" customWidth="1"/>
+    <col min="4" max="4" width="14" customWidth="1"/>
+    <col min="5" max="5" width="14" customWidth="1"/>
+    <col min="6" max="6" width="14" customWidth="1"/>
+    <col min="7" max="7" width="80" customWidth="1"/>
+  </cols>
+  <sheetData>${sheetRows}</sheetData>
+</worksheet>`;
+
+  return createZip([
+    {
+      name: "[Content_Types].xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`
+    },
+    {
+      name: "_rels/.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/workbook.xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets>
+    <sheet name="고객문의" sheetId="1" r:id="rId1"/>
+  </sheets>
+</workbook>`
+    },
+    {
+      name: "xl/_rels/workbook.xml.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/worksheets/sheet1.xml",
+      content: worksheet
+    }
+  ]);
 }
 
 function downloadExcel() {
   const sortedPosts = [...posts].sort((a, b) => b.no - a.no);
-  const rows = sortedPosts.map((post) => `
-    <tr>
-      <td>${post.no}</td>
-      <td>${escapeHtml(post.category)}</td>
-      <td>${escapeHtml(post.title)}</td>
-      <td>${escapeHtml(post.customer)}</td>
-      <td>${formatDate(post.date)}</td>
-      <td>답변대기</td>
-      <td>${escapeHtml(post.content)}</td>
-    </tr>
-  `).join("");
-
-  const workbook = `
-    <html>
-      <head>
-        <meta charset="utf-8">
-      </head>
-      <body>
-        <table border="1">
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>유형</th>
-              <th>제목</th>
-              <th>고객명</th>
-              <th>문의일</th>
-              <th>답변상태</th>
-              <th>본문</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </body>
-    </html>
-  `;
-
-  const blob = new Blob(["\ufeff", workbook], {
-    type: "application/vnd.ms-excel;charset=utf-8"
-  });
+  const rows = [
+    ["번호", "유형", "제목", "고객명", "문의일", "답변상태", "본문"],
+    ...sortedPosts.map((post) => [
+      post.no,
+      post.category,
+      post.title,
+      post.customer,
+      formatDate(post.date),
+      "답변대기",
+      post.content
+    ])
+  ];
+  const blob = createXlsxBlob(rows);
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = "customer-inquiries.xls";
+  link.download = "customer-inquiries.xlsx";
   document.body.appendChild(link);
   link.click();
   link.remove();
