@@ -170,6 +170,63 @@ h2 {
   color: var(--blue);
 }
 
+.filter-panel {
+  display: grid;
+  grid-template-columns: 150px minmax(150px, 1fr) minmax(130px, 0.8fr) 140px 140px 140px 86px;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #d7dee8;
+  background: #f8fafc;
+}
+
+.filter-panel label {
+  display: grid;
+  gap: 6px;
+}
+
+.filter-panel span {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.filter-panel input,
+.filter-panel select {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid #bcc7d5;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  padding: 0 10px;
+}
+
+.filter-panel input:focus,
+.filter-panel select:focus {
+  outline: 2px solid rgba(11, 131, 216, 0.18);
+  border-color: var(--blue);
+}
+
+.search-button {
+  min-height: 36px;
+  border: 1px solid var(--navy);
+  border-radius: 3px;
+  background: var(--navy);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.search-button:hover,
+.search-button:focus {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
 .board {
   width: 100%;
   background: #ffffff;
@@ -212,6 +269,15 @@ h2 {
 .post-row:focus {
   outline: 1px solid #86b7e8;
   outline-offset: -1px;
+}
+
+.empty-row {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--soft-line);
+  color: var(--muted);
 }
 
 .post-no,
@@ -438,6 +504,10 @@ time {
 
   .content-panel {
     padding: 20px 14px 24px;
+  }
+
+  .filter-panel {
+    grid-template-columns: 1fr;
   }
 
   .board-head {

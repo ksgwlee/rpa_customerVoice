@@ -35,12 +35,48 @@
         <div class="section-head">
           <div>
             <h2>고객문의 목록</h2>
-            <span>총 50건</span>
+            <span id="resultCount">총 50건</span>
           </div>
           <button id="downloadExcelButton" class="download-button" type="button">엑셀 다운로드</button>
         </div>
 
         <section id="listView" class="board-view" aria-label="고객문의 목록">
+          <form id="filterForm" class="filter-panel" aria-label="고객문의 조회 조건">
+            <label>
+              <span>분류</span>
+              <select id="categoryFilter">
+                <option value="">전체</option>
+                <option value="배송">배송</option>
+                <option value="결제/환불">결제/환불</option>
+                <option value="상품">상품</option>
+                <option value="서비스 이용">서비스 이용</option>
+              </select>
+            </label>
+            <label>
+              <span>제목</span>
+              <input id="titleFilter" type="search" placeholder="제목 검색">
+            </label>
+            <label>
+              <span>고객명</span>
+              <input id="customerFilter" type="search" placeholder="고객명 검색">
+            </label>
+            <label>
+              <span>시작일</span>
+              <input id="startDateFilter" type="date">
+            </label>
+            <label>
+              <span>종료일</span>
+              <input id="endDateFilter" type="date">
+            </label>
+            <label>
+              <span>답변상태</span>
+              <select id="statusFilter">
+                <option value="">전체</option>
+                <option value="답변대기">답변대기</option>
+              </select>
+            </label>
+            <button class="search-button" type="submit">조회</button>
+          </form>
           <div class="board">
             <div class="board-head">
               <span>번호</span>

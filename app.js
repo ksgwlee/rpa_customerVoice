@@ -82,13 +82,47 @@ const postDetail = document.querySelector("#postDetail");
 const backButton = document.querySelector("#backButton");
 const pagination = document.querySelector("#pagination");
 const downloadExcelButton = document.querySelector("#downloadExcelButton");
+const filterForm = document.querySelector("#filterForm");
+const categoryFilter = document.querySelector("#categoryFilter");
+const titleFilter = document.querySelector("#titleFilter");
+const customerFilter = document.querySelector("#customerFilter");
+const startDateFilter = document.querySelector("#startDateFilter");
+const endDateFilter = document.querySelector("#endDateFilter");
+const statusFilter = document.querySelector("#statusFilter");
+const resultCount = document.querySelector("#resultCount");
+
+let activeFilters = {
+  category: "",
+  title: "",
+  customer: "",
+  startDate: "",
+  endDate: "",
+  status: ""
+};
 
 function formatDate(value) {
   return value.replaceAll("-", ".");
 }
 
+function normalize(value) {
+  return value.trim().toLowerCase();
+}
+
+function getFilteredPosts() {
+  return posts.filter((post) => {
+    const matchesCategory = !activeFilters.category || post.category === activeFilters.category;
+    const matchesTitle = !activeFilters.title || normalize(post.title).includes(activeFilters.title);
+    const matchesCustomer = !activeFilters.customer || normalize(post.customer).includes(activeFilters.customer);
+    const matchesStartDate = !activeFilters.startDate || post.date >= activeFilters.startDate;
+    const matchesEndDate = !activeFilters.endDate || post.date <= activeFilters.endDate;
+    const matchesStatus = !activeFilters.status || activeFilters.status === "답변대기";
+
+    return matchesCategory && matchesTitle && matchesCustomer && matchesStartDate && matchesEndDate && matchesStatus;
+  });
+}
+
 function getTotalPages() {
-  return Math.ceil(posts.length / pageSize);
+  return Math.max(1, Math.ceil(getFilteredPosts().length / pageSize));
 }
 
 function getCurrentPage() {
@@ -106,6 +140,13 @@ function setPageUrl(page) {
   }
   url.searchParams.delete("no");
   window.history.pushState({ page }, "", url);
+}
+
+function resetPageUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("page");
+  url.searchParams.delete("no");
+  window.history.pushState({}, "", url);
 }
 
 function renderPagination(currentPage) {
@@ -131,11 +172,12 @@ function renderPagination(currentPage) {
 
 function renderList() {
   const currentPage = getCurrentPage();
-  const sortedPosts = [...posts].sort((a, b) => b.no - a.no);
+  const filteredPosts = getFilteredPosts();
+  const sortedPosts = [...filteredPosts].sort((a, b) => b.no - a.no);
   const startIndex = (currentPage - 1) * pageSize;
   const pagePosts = sortedPosts.slice(startIndex, startIndex + pageSize);
 
-  postList.innerHTML = pagePosts.map((post) => `
+  postList.innerHTML = pagePosts.length ? pagePosts.map((post) => `
     <button
       class="post-row"
       type="button"
@@ -152,8 +194,9 @@ function renderList() {
       <time datetime="${post.date}">${formatDate(post.date)}</time>
       <span class="status-badge">답변대기</span>
     </button>
-  `).join("");
+  `).join("") : `<div class="empty-row">조회 조건에 맞는 고객문의가 없습니다.</div>`;
 
+  resultCount.textContent = `총 ${filteredPosts.length}건`;
   renderPagination(currentPage);
 }
 
@@ -467,6 +510,20 @@ postList.addEventListener("click", (event) => {
   const row = event.target.closest(".post-row");
   if (!row) return;
   openPost(row.dataset.inquiryNo, true);
+});
+
+filterForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  activeFilters = {
+    category: categoryFilter.value,
+    title: normalize(titleFilter.value),
+    customer: normalize(customerFilter.value),
+    startDate: startDateFilter.value,
+    endDate: endDateFilter.value,
+    status: statusFilter.value
+  };
+  resetPageUrl();
+  showList();
 });
 
 pagination.addEventListener("click", (event) => {
