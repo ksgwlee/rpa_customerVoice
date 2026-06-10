@@ -423,7 +423,7 @@ function createXlsxBlob(rows) {
 }
 
 function downloadExcel() {
-  const sortedPosts = [...posts].sort((a, b) => b.no - a.no);
+  const sortedPosts = [...getFilteredPosts()].sort((a, b) => b.no - a.no);
   const rows = [
     ["번호", "분류", "제목", "고객명", "문의일", "답변상태", "본문"],
     ...sortedPosts.map((post) => [
