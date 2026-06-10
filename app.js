@@ -69,6 +69,7 @@ const posts = inquiries.map((item, index) => {
     categoryClass: categoryClasses[item.category],
     customer: item.customer,
     date: `2026-06-${day}`,
+    status: index % 3 === 0 ? "답변완료" : "답변대기",
     title: item.title,
     content: item.content
   };
@@ -133,7 +134,7 @@ function getFilteredPosts() {
     const searchTarget = activeFilters.searchType === "customer" ? post.customer : post.title;
     const matchesKeyword = !activeFilters.keyword || normalize(searchTarget).includes(activeFilters.keyword);
     const matchesPeriod = !periodStartDate || post.date >= periodStartDate;
-    const matchesStatus = !activeFilters.status || activeFilters.status === "답변대기";
+    const matchesStatus = !activeFilters.status || post.status === activeFilters.status;
 
     return matchesCategory && matchesKeyword && matchesPeriod && matchesStatus;
   });
@@ -210,7 +211,7 @@ function renderList() {
       <span class="post-title">${post.title}</span>
       <span class="post-customer">${post.customer}</span>
       <time datetime="${post.date}">${formatDate(post.date)}</time>
-      <span class="status-badge">답변대기</span>
+      <span class="status-badge ${post.status === "답변완료" ? "complete" : "pending"}">${post.status}</span>
     </button>
   `).join("") : `<div class="empty-row">조회 조건에 맞는 고객문의가 없습니다.</div>`;
 
@@ -450,7 +451,7 @@ function downloadExcel() {
       post.title,
       post.customer,
       formatDate(post.date),
-      "답변대기",
+      post.status,
       post.content
     ])
   ];

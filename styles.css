@@ -357,6 +357,14 @@ time {
   white-space: nowrap;
 }
 
+.status-badge.complete {
+  background: #2f86d3;
+}
+
+.status-badge.pending {
+  background: #6b7280;
+}
+
 .pagination {
   display: flex;
   justify-content: center;
