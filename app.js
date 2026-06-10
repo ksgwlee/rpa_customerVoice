@@ -86,8 +86,7 @@ const filterForm = document.querySelector("#filterForm");
 const categoryFilter = document.querySelector("#categoryFilter");
 const searchTypeFilter = document.querySelector("#searchTypeFilter");
 const keywordFilter = document.querySelector("#keywordFilter");
-const startDateFilter = document.querySelector("#startDateFilter");
-const endDateFilter = document.querySelector("#endDateFilter");
+const periodFilter = document.querySelector("#periodFilter");
 const statusFilter = document.querySelector("#statusFilter");
 const resultCount = document.querySelector("#resultCount");
 
@@ -95,8 +94,7 @@ let activeFilters = {
   category: "",
   searchType: "title",
   keyword: "",
-  startDate: "",
-  endDate: "",
+  period: "all",
   status: ""
 };
 
@@ -108,16 +106,36 @@ function normalize(value) {
   return value.trim().toLowerCase();
 }
 
+function addDays(dateText, days) {
+  const date = new Date(`${dateText}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getLatestPostDate() {
+  return posts.reduce((latest, post) => post.date > latest ? post.date : latest, posts[0].date);
+}
+
+function getPeriodStartDate() {
+  const latestDate = getLatestPostDate();
+
+  if (activeFilters.period === "1d") return latestDate;
+  if (activeFilters.period === "1w") return addDays(latestDate, -6);
+  if (activeFilters.period === "1m") return addDays(latestDate, -29);
+  return "";
+}
+
 function getFilteredPosts() {
+  const periodStartDate = getPeriodStartDate();
+
   return posts.filter((post) => {
     const matchesCategory = !activeFilters.category || post.category === activeFilters.category;
     const searchTarget = activeFilters.searchType === "customer" ? post.customer : post.title;
     const matchesKeyword = !activeFilters.keyword || normalize(searchTarget).includes(activeFilters.keyword);
-    const matchesStartDate = !activeFilters.startDate || post.date >= activeFilters.startDate;
-    const matchesEndDate = !activeFilters.endDate || post.date <= activeFilters.endDate;
+    const matchesPeriod = !periodStartDate || post.date >= periodStartDate;
     const matchesStatus = !activeFilters.status || activeFilters.status === "답변대기";
 
-    return matchesCategory && matchesKeyword && matchesStartDate && matchesEndDate && matchesStatus;
+    return matchesCategory && matchesKeyword && matchesPeriod && matchesStatus;
   });
 }
 
@@ -518,8 +536,7 @@ filterForm.addEventListener("submit", (event) => {
     category: categoryFilter.value,
     searchType: searchTypeFilter.value,
     keyword: normalize(keywordFilter.value),
-    startDate: startDateFilter.value,
-    endDate: endDateFilter.value,
+    period: periodFilter.value,
     status: statusFilter.value
   };
   resetPageUrl();

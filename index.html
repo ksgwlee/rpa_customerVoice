@@ -64,12 +64,13 @@
               <input id="keywordFilter" type="search" placeholder="검색어 포함">
             </label>
             <label>
-              <span>시작일</span>
-              <input id="startDateFilter" type="date">
-            </label>
-            <label>
-              <span>종료일</span>
-              <input id="endDateFilter" type="date">
+              <span>기간</span>
+              <select id="periodFilter">
+                <option value="all">전체</option>
+                <option value="1d">1일</option>
+                <option value="1w">1주일</option>
+                <option value="1m">1달</option>
+              </select>
             </label>
             <label>
               <span>답변상태</span>
