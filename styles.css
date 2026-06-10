@@ -240,13 +240,10 @@ time {
   white-space: nowrap;
 }
 
-.category-payment,
-.category-product,
-.category-service,
-.category-notice {
-  background: var(--badge);
-  color: #ffffff;
-}
+.category-notice { background: #2f86d3; color: #ffffff; }
+.category-payment { background: #0f9f7a; color: #ffffff; }
+.category-product { background: #d97706; color: #ffffff; }
+.category-service { background: #7c3aed; color: #ffffff; }
 
 .post-title {
   position: relative;
