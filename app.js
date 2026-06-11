@@ -131,8 +131,10 @@ function getFilteredPosts() {
 
   return posts.filter((post) => {
     const matchesCategory = !activeFilters.category || post.category === activeFilters.category;
-    const searchTarget = activeFilters.searchType === "customer" ? post.customer : post.title;
-    const matchesKeyword = !activeFilters.keyword || normalize(searchTarget).includes(activeFilters.keyword);
+    const matchesKeyword = !activeFilters.keyword
+      || (activeFilters.searchType === "customer"
+        ? normalize(post.customer) === activeFilters.keyword
+        : normalize(post.title).includes(activeFilters.keyword));
     const matchesPeriod = !periodStartDate || post.date >= periodStartDate;
     const matchesStatus = !activeFilters.status || post.status === activeFilters.status;
 
