@@ -108,7 +108,7 @@ function normalize(value) {
 }
 
 function updateKeywordPlaceholder() {
-  keywordFilter.placeholder = searchTypeFilter.value === "customer" ? "고객명 정확히 입력" : "제목 포함 검색";
+  keywordFilter.placeholder = searchTypeFilter.value === "customer" ? "고객명 입력" : "제목 포함 검색";
 }
 
 function addDays(dateText, days) {
