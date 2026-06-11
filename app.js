@@ -401,7 +401,6 @@ function createXlsxBlob(rows) {
     <col min="4" max="4" width="14" customWidth="1"/>
     <col min="5" max="5" width="14" customWidth="1"/>
     <col min="6" max="6" width="14" customWidth="1"/>
-    <col min="7" max="7" width="80" customWidth="1"/>
   </cols>
   <sheetData>${sheetRows}</sheetData>
 </worksheet>`;
@@ -450,15 +449,14 @@ function createXlsxBlob(rows) {
 function downloadExcel() {
   const sortedPosts = [...getFilteredPosts()].sort((a, b) => b.no - a.no);
   const rows = [
-    ["번호", "분류", "제목", "고객명", "문의일", "답변상태", "본문"],
+    ["번호", "분류", "제목", "고객명", "문의일", "답변상태"],
     ...sortedPosts.map((post) => [
       post.no,
       post.category,
       post.title,
       post.customer,
       formatDate(post.date),
-      post.status,
-      post.content
+      post.status
     ])
   ];
   const blob = createXlsxBlob(rows);
