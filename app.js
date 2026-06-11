@@ -107,6 +107,10 @@ function normalize(value) {
   return value.trim().toLowerCase();
 }
 
+function updateKeywordPlaceholder() {
+  keywordFilter.placeholder = searchTypeFilter.value === "customer" ? "고객명 정확히 입력" : "제목 포함 검색";
+}
+
 function addDays(dateText, days) {
   const date = new Date(`${dateText}T00:00:00`);
   date.setDate(date.getDate() + days);
@@ -546,6 +550,8 @@ filterForm.addEventListener("submit", (event) => {
   showList();
 });
 
+searchTypeFilter.addEventListener("change", updateKeywordPlaceholder);
+
 pagination.addEventListener("click", (event) => {
   const button = event.target.closest(".page-button");
   if (!button || button.disabled) return;
@@ -558,4 +564,5 @@ backButton.addEventListener("click", () => showList(true));
 window.addEventListener("popstate", openPostFromUrl);
 
 renderList();
+updateKeywordPlaceholder();
 openPostFromUrl();
